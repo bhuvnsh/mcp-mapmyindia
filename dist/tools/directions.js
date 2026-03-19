@@ -40,7 +40,7 @@ export async function directions(auth, input) {
         params.overview = input.overview;
     if (input.region)
         params.region = input.region;
-    const data = await mapplsGet(auth, `/v1/direction/${profile}`, params);
+    const data = await mapplsGet(auth, `/direction/${profile}`, params);
     return JSON.stringify(data, null, 2);
 }
 //# sourceMappingURL=directions.js.map

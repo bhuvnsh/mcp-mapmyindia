@@ -27,9 +27,9 @@ describe("geocode", () => {
 
     expect(parsed.copResults[0].latitude).toBe(28.6);
     const [url] = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
-    expect(url).toContain("/v1/geocode");
+    // API key is embedded in URL path: /v1/{key}/geocode
+    expect(url).toContain("/v1/test-key/geocode");
     expect(url).toContain("address=India+Gate%2C+Delhi");
-    expect(url).toContain("rest_key=test-key");
   });
 
   it("passes optional pod and region params", async () => {
@@ -55,7 +55,7 @@ describe("reverseGeocode", () => {
     const parsed = JSON.parse(result);
     expect(parsed.formatted_address).toBe("India Gate");
     const [url] = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
-    expect(url).toContain("/v1/rev_geocode");
+    expect(url).toContain("/v1/test-key/rev_geocode");
     expect(url).toContain("lat=28.6129");
     expect(url).toContain("lng=77.2295");
   });
@@ -66,7 +66,7 @@ describe("placesSearch", () => {
     vi.stubGlobal("fetch", mockSuccess({ suggestedLocations: [] }));
     await placesSearch(apiKeyAuth, { query: "coffee" });
     const [url] = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
-    expect(url).toContain("/v1/places");
+    expect(url).toContain("/v1/test-key/places");
     expect(url).toContain("query=coffee");
   });
 
@@ -88,7 +88,7 @@ describe("nearby", () => {
     vi.stubGlobal("fetch", mockSuccess({ nearbyPlaces: [] }));
     await nearby(apiKeyAuth, { keywords: "hospital", refLocation: "28.6,77.2" });
     const [url] = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
-    expect(url).toContain("/v1/nearby");
+    expect(url).toContain("/v1/test-key/nearby");
     expect(url).toContain("keywords=hospital");
     expect(url).toContain("refLocation=28.6%2C77.2");
   });
@@ -102,7 +102,7 @@ describe("directions", () => {
       destination: "28.7,77.3",
     });
     const [url] = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
-    expect(url).toContain("/v1/direction/driving");
+    expect(url).toContain("/v1/test-key/direction/driving");
     expect(url).toContain("coordinates=28.6%2C77.2%3B28.7%2C77.3");
   });
 
@@ -115,7 +115,7 @@ describe("directions", () => {
       profile: "biking",
     });
     const [url] = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
-    expect(url).toContain("/v1/direction/biking");
+    expect(url).toContain("/v1/test-key/direction/biking");
     expect(url).toContain("28.6%2C77.2%3B28.7%2C77.3%3B28.8%2C77.4");
   });
 });
@@ -128,7 +128,7 @@ describe("distanceMatrix", () => {
       destinations: "28.7,77.3",
     });
     const [url] = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
-    expect(url).toContain("/v1/distance_matrix/driving");
+    expect(url).toContain("/v1/test-key/distance_matrix/driving");
     expect(url).toContain("origins=");
     expect(url).toContain("destinations=");
   });
@@ -141,7 +141,7 @@ describe("placeDetail", () => {
     const parsed = JSON.parse(result);
     expect(parsed.placeAddress).toBe("New Delhi");
     const [url] = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
-    expect(url).toContain("/v1/eloc");
+    expect(url).toContain("/v1/test-key/eloc");
     expect(url).toContain("eLoc=MMI000");
   });
 });

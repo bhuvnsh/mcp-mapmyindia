@@ -27,7 +27,7 @@ export async function distanceMatrix(auth, input) {
         params.region = input.region;
     if (input.rtype !== undefined)
         params.rtype = input.rtype;
-    const data = await mapplsGet(auth, `/v1/distance_matrix/${profile}`, params);
+    const data = await mapplsGet(auth, `/distance_matrix/${profile}`, params);
     return JSON.stringify(data, null, 2);
 }
 //# sourceMappingURL=distance-matrix.js.map

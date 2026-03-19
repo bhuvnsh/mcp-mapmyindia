@@ -14,6 +14,6 @@ export async function placeDetail(
   auth: AuthConfig,
   input: PlaceDetailInput
 ): Promise<string> {
-  const data = await mapplsGet(auth, `/v1/eloc`, { eLoc: input.eLoc });
+  const data = await mapplsGet(auth, `/eloc`, { eLoc: input.eLoc });
   return JSON.stringify(data, null, 2);
 }

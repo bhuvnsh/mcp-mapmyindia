@@ -27,6 +27,6 @@ export async function geocode(auth: AuthConfig, input: GeocodeInput): Promise<st
   if (input.bias) params.bias = input.bias;
   if (input.filter) params.filter = input.filter;
 
-  const data = await mapplsGet(auth, "/v1/geocode", params);
+  const data = await mapplsGet(auth, "/geocode", params);
   return JSON.stringify(data, null, 2);
 }

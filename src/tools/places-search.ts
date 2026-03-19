@@ -34,6 +34,6 @@ export async function placesSearch(
   if (input.page) params.page = input.page;
   if (input.region) params.region = input.region;
 
-  const data = await mapplsGet(auth, "/v1/places", params);
+  const data = await mapplsGet(auth, "/places", params);
   return JSON.stringify(data, null, 2);
 }

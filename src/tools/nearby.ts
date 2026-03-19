@@ -28,6 +28,6 @@ export async function nearby(auth: AuthConfig, input: NearbyInput): Promise<stri
   if (input.page) params.page = input.page;
   if (input.region) params.region = input.region;
 
-  const data = await mapplsGet(auth, "/v1/nearby", params);
+  const data = await mapplsGet(auth, "/nearby", params);
   return JSON.stringify(data, null, 2);
 }

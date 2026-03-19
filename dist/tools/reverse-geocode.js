@@ -12,7 +12,7 @@ export async function reverseGeocode(auth, input) {
     };
     if (input.lang)
         params.lang = input.lang;
-    const data = await mapplsGet(auth, "/v1/rev_geocode", params);
+    const data = await mapplsGet(auth, "/rev_geocode", params);
     return JSON.stringify(data, null, 2);
 }
 //# sourceMappingURL=reverse-geocode.js.map
