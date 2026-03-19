@@ -6,6 +6,8 @@ export interface AuthConfig {
     clientSecret?: string;
     accessToken?: string;
 }
+/** Reset the OAuth token cache. Exposed for testing only. */
+export declare function _resetTokenCache(): void;
 export declare function resolveAuth(): AuthConfig;
 export declare function getAccessToken(auth: AuthConfig): Promise<string>;
 export declare function authQueryParam(auth: AuthConfig, token: string): string;

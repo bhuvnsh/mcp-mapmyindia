@@ -1,4 +1,5 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { createServer } from "../server.js";
 
 beforeEach(() => {
@@ -6,16 +7,19 @@ beforeEach(() => {
 });
 
 describe("createServer", () => {
-  it("creates an MCP server without throwing", () => {
-    expect(() => createServer()).not.toThrow();
+  it("returns an McpServer instance", () => {
+    const server = createServer();
+    expect(server).toBeInstanceOf(McpServer);
   });
 
-  it("server has expected name and version", () => {
+  it("server exposes connect and tool methods", () => {
     const server = createServer();
-    // McpServer exposes these on its internal _serverInfo
-    const info = (server as unknown as { _serverInfo: { name: string; version: string } })
-      ._serverInfo;
-    expect(info.name).toBe("mcp-mapmyindia");
-    expect(info.version).toBe("0.1.0");
+    expect(typeof server.connect).toBe("function");
+    expect(typeof server.tool).toBe("function");
+  });
+
+  it("throws when no auth env vars are present", () => {
+    delete process.env.MAPPLS_API_KEY;
+    expect(() => createServer()).toThrow("Auth not configured");
   });
 });

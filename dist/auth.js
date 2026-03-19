@@ -1,5 +1,10 @@
 let cachedToken = null;
 let tokenExpiresAt = 0;
+/** Reset the OAuth token cache. Exposed for testing only. */
+export function _resetTokenCache() {
+    cachedToken = null;
+    tokenExpiresAt = 0;
+}
 export function resolveAuth() {
     const apiKey = process.env.MAPPLS_API_KEY;
     const clientId = process.env.MAPPLS_CLIENT_ID;

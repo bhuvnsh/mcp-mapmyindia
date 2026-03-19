@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { resolveAuth, getAccessToken } from "../auth.js";
+import { resolveAuth, getAccessToken, _resetTokenCache } from "../auth.js";
 
 describe("resolveAuth", () => {
   beforeEach(() => {
@@ -38,6 +38,11 @@ describe("resolveAuth", () => {
 });
 
 describe("getAccessToken", () => {
+  beforeEach(() => {
+    _resetTokenCache();
+    vi.unstubAllGlobals();
+  });
+
   it("returns apiKey directly for api_key mode", async () => {
     const auth = { mode: "api_key" as const, apiKey: "my-api-key" };
     const token = await getAccessToken(auth);
@@ -63,8 +68,6 @@ describe("getAccessToken", () => {
     expect(token1).toBe("oauth-token-xyz");
     expect(token2).toBe("oauth-token-xyz");
     expect(mockFetch).toHaveBeenCalledTimes(1); // fetched only once
-
-    vi.unstubAllGlobals();
   });
 
   it("throws on OAuth token fetch failure", async () => {
@@ -76,7 +79,5 @@ describe("getAccessToken", () => {
 
     const auth = { mode: "oauth" as const, clientId: "bad", clientSecret: "creds" };
     await expect(getAccessToken(auth)).rejects.toThrow("OAuth token fetch failed: 401");
-
-    vi.unstubAllGlobals();
   });
 });
