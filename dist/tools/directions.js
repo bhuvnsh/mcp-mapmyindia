@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { mapplsGet } from "../client.js";
+import { mapplsAdvanced } from "../client.js";
 export const directionsSchema = z.object({
     origin: z
         .string()
@@ -21,15 +21,21 @@ export const directionsSchema = z.object({
     overview: z.enum(["full", "simplified", "false"]).optional(),
     region: z.string().optional().describe("ISO 3166-1 alpha-2 country code"),
 });
+/** Convert "lat,lng" to "lng,lat" for Mappls route_adv API */
+function flipCoord(latLng) {
+    const [lat, lng] = latLng.split(",");
+    return `${lng},${lat}`;
+}
 export async function directions(auth, input) {
     const profile = input.profile ?? "driving";
-    const params = {};
+    // Build coordinate string in lng,lat order separated by ;
+    const points = [input.origin];
     if (input.waypoints) {
-        params.coordinates = `${input.origin};${input.waypoints};${input.destination}`;
+        points.push(...input.waypoints.split("|"));
     }
-    else {
-        params.coordinates = `${input.origin};${input.destination}`;
-    }
+    points.push(input.destination);
+    const coords = points.map(flipCoord).join(";");
+    const params = {};
     if (input.alternatives !== undefined)
         params.alternatives = input.alternatives;
     if (input.steps !== undefined)
@@ -40,7 +46,8 @@ export async function directions(auth, input) {
         params.overview = input.overview;
     if (input.region)
         params.region = input.region;
-    const data = await mapplsGet(auth, `/direction/${profile}`, params);
+    // route_adv endpoint: /route_adv/{profile}/{coords}
+    const data = await mapplsAdvanced(auth, `/route_adv/${profile}/${coords}`, params);
     return JSON.stringify(data, null, 2);
 }
 //# sourceMappingURL=directions.js.map

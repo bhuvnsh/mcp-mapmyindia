@@ -1,8 +1,19 @@
-import { AuthConfig, getAccessToken, authQueryParam } from "./auth.js";
+import { AuthConfig, getAccessToken } from "./auth.js";
 
-const BASE = "https://apis.mappls.com/advancedmaps";
+const ATLAS_BASE = "https://atlas.mappls.com/api/places";
+const ADVANCED_BASE = "https://apis.mappls.com/advancedmaps/v1";
+const EXPLORE_BASE = "https://explore.mappls.com";
 
-export async function mapplsGet(
+async function handleResponse(res: Response): Promise<unknown> {
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Mappls API error ${res.status}: ${body}`);
+  }
+  return res.json();
+}
+
+/** atlas.mappls.com — Bearer token in Authorization header */
+export async function mapplsAtlas(
   auth: AuthConfig,
   path: string,
   params: Record<string, string | number | boolean>
@@ -11,22 +22,41 @@ export async function mapplsGet(
   const query = new URLSearchParams(
     Object.entries(params).map(([k, v]) => [k, String(v)])
   );
+  const url = `${ATLAS_BASE}${path}?${query.toString()}`;
+  const res = await fetch(url, {
+    headers: { Authorization: `bearer ${token}` },
+  });
+  return handleResponse(res);
+}
 
-  // API key is embedded in the URL path: /v1/{key}/geocode
-  // OAuth token goes as a query param: /v1/geocode?access_token=...
-  let url: string;
-  if (auth.mode === "api_key") {
-    url = `${BASE}/v1/${token}${path}?${query.toString()}`;
-  } else {
-    query.append("access_token", token);
-    url = `${BASE}/v1${path}?${query.toString()}`;
-  }
+/** apis.mappls.com/advancedmaps — token embedded in URL path */
+export async function mapplsAdvanced(
+  auth: AuthConfig,
+  path: string,
+  params?: Record<string, string | number | boolean>
+): Promise<unknown> {
+  const token = await getAccessToken(auth);
+  const query = params
+    ? new URLSearchParams(
+        Object.entries(params).map(([k, v]) => [k, String(v)])
+      )
+    : null;
+  const url = query
+    ? `${ADVANCED_BASE}/${token}${path}?${query.toString()}`
+    : `${ADVANCED_BASE}/${token}${path}`;
   const res = await fetch(url);
+  return handleResponse(res);
+}
 
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Mappls API error ${res.status}: ${body}`);
-  }
-
-  return res.json();
+/** explore.mappls.com — Bearer token in Authorization header */
+export async function mapplsExplore(
+  auth: AuthConfig,
+  path: string
+): Promise<unknown> {
+  const token = await getAccessToken(auth);
+  const url = `${EXPLORE_BASE}${path}`;
+  const res = await fetch(url, {
+    headers: { Authorization: `bearer ${token}` },
+  });
+  return handleResponse(res);
 }

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { AuthConfig } from "../auth.js";
-import { mapplsGet } from "../client.js";
+import { mapplsAtlas } from "../client.js";
 
 export const nearbySchema = z.object({
   keywords: z.string().describe("Category or keyword to search nearby (e.g. 'atm', 'hospital')"),
@@ -28,6 +28,6 @@ export async function nearby(auth: AuthConfig, input: NearbyInput): Promise<stri
   if (input.page) params.page = input.page;
   if (input.region) params.region = input.region;
 
-  const data = await mapplsGet(auth, "/nearby", params);
+  const data = await mapplsAtlas(auth, "/nearby/json", params);
   return JSON.stringify(data, null, 2);
 }

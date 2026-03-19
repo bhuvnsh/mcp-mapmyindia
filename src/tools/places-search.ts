@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { AuthConfig } from "../auth.js";
-import { mapplsGet } from "../client.js";
+import { mapplsAtlas } from "../client.js";
 
 export const placesSearchSchema = z.object({
   query: z.string().describe("Search keyword or place name"),
@@ -34,6 +34,6 @@ export async function placesSearch(
   if (input.page) params.page = input.page;
   if (input.region) params.region = input.region;
 
-  const data = await mapplsGet(auth, "/places", params);
+  const data = await mapplsAtlas(auth, "/search/json", params);
   return JSON.stringify(data, null, 2);
 }

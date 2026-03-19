@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { mapplsGet } from "../client.js";
+import { mapplsAdvanced } from "../client.js";
 export const reverseGeocodeSchema = z.object({
     lat: z.number().describe("Latitude"),
     lng: z.number().describe("Longitude"),
@@ -12,7 +12,7 @@ export async function reverseGeocode(auth, input) {
     };
     if (input.lang)
         params.lang = input.lang;
-    const data = await mapplsGet(auth, "/rev_geocode", params);
+    const data = await mapplsAdvanced(auth, "/rev_geocode", params);
     return JSON.stringify(data, null, 2);
 }
 //# sourceMappingURL=reverse-geocode.js.map

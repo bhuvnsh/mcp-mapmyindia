@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { AuthConfig } from "../auth.js";
-import { mapplsGet } from "../client.js";
+import { mapplsAdvanced } from "../client.js";
 
 export const directionsSchema = z.object({
   origin: z
@@ -26,22 +26,31 @@ export const directionsSchema = z.object({
 
 export type DirectionsInput = z.infer<typeof directionsSchema>;
 
+/** Convert "lat,lng" to "lng,lat" for Mappls route_adv API */
+function flipCoord(latLng: string): string {
+  const [lat, lng] = latLng.split(",");
+  return `${lng},${lat}`;
+}
+
 export async function directions(auth: AuthConfig, input: DirectionsInput): Promise<string> {
   const profile = input.profile ?? "driving";
-  const params: Record<string, string | number | boolean> = {};
 
+  // Build coordinate string in lng,lat order separated by ;
+  const points = [input.origin];
   if (input.waypoints) {
-    params.coordinates = `${input.origin};${input.waypoints};${input.destination}`;
-  } else {
-    params.coordinates = `${input.origin};${input.destination}`;
+    points.push(...input.waypoints.split("|"));
   }
+  points.push(input.destination);
+  const coords = points.map(flipCoord).join(";");
 
+  const params: Record<string, string | number | boolean> = {};
   if (input.alternatives !== undefined) params.alternatives = input.alternatives;
   if (input.steps !== undefined) params.steps = input.steps;
   if (input.geometries) params.geometries = input.geometries;
   if (input.overview) params.overview = input.overview;
   if (input.region) params.region = input.region;
 
-  const data = await mapplsGet(auth, `/direction/${profile}`, params);
+  // route_adv endpoint: /route_adv/{profile}/{coords}
+  const data = await mapplsAdvanced(auth, `/route_adv/${profile}/${coords}`, params);
   return JSON.stringify(data, null, 2);
 }

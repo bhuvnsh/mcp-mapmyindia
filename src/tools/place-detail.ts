@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { AuthConfig } from "../auth.js";
-import { mapplsGet } from "../client.js";
+import { mapplsExplore } from "../client.js";
 
 export const placeDetailSchema = z.object({
   eLoc: z
@@ -14,6 +14,6 @@ export async function placeDetail(
   auth: AuthConfig,
   input: PlaceDetailInput
 ): Promise<string> {
-  const data = await mapplsGet(auth, `/eloc`, { eLoc: input.eLoc });
+  const data = await mapplsExplore(auth, `/apis/O2O/entity/${input.eLoc}`);
   return JSON.stringify(data, null, 2);
 }

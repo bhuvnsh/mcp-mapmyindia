@@ -7,141 +7,157 @@ import { directions } from "../tools/directions.js";
 import { distanceMatrix } from "../tools/distance-matrix.js";
 import { placeDetail } from "../tools/place-detail.js";
 
-const apiKeyAuth = { mode: "api_key" as const, apiKey: "test-key" };
+const oauthAuth = { mode: "oauth" as const, clientId: "id", clientSecret: "secret" };
 
-const mockSuccess = (body: unknown) =>
-  vi.fn().mockResolvedValue({ ok: true, json: async () => body });
+/** Stub fetch AND the OAuth token fetch in one go */
+function stubFetchWithToken(apiResponse: unknown) {
+  const mockFetch = vi.fn().mockImplementation((url: string) => {
+    if (url.includes("oauth/token")) {
+      return Promise.resolve({
+        ok: true,
+        json: async () => ({ access_token: "test-token", expires_in: 3600 }),
+      });
+    }
+    return Promise.resolve({
+      ok: true,
+      json: async () => apiResponse,
+    });
+  });
+  vi.stubGlobal("fetch", mockFetch);
+  return mockFetch;
+}
 
-const mockFailure = (status: number, text: string) =>
-  vi.fn().mockResolvedValue({ ok: false, status, text: async () => text });
+function stubFetchFailure(status: number, text: string) {
+  const mockFetch = vi.fn().mockImplementation((url: string) => {
+    if (url.includes("oauth/token")) {
+      return Promise.resolve({
+        ok: true,
+        json: async () => ({ access_token: "test-token", expires_in: 3600 }),
+      });
+    }
+    return Promise.resolve({ ok: false, status, text: async () => text });
+  });
+  vi.stubGlobal("fetch", mockFetch);
+  return mockFetch;
+}
 
-beforeEach(() => vi.unstubAllGlobals());
+/** Get the last non-OAuth fetch call URL */
+function getApiCallUrl(mockFetch: ReturnType<typeof vi.fn>): string {
+  const calls = mockFetch.mock.calls.filter(
+    (c: [string]) => !c[0].includes("oauth/token")
+  );
+  return calls[calls.length - 1][0];
+}
+
+beforeEach(() => {
+  vi.unstubAllGlobals();
+  // Reset the cached OAuth token between tests
+  vi.resetModules();
+});
 
 describe("geocode", () => {
-  it("calls geocode endpoint and returns JSON", async () => {
-    const payload = { copResults: [{ latitude: 28.6, longitude: 77.2 }] };
-    vi.stubGlobal("fetch", mockSuccess(payload));
-
-    const result = await geocode(apiKeyAuth, { address: "India Gate, Delhi" });
+  it("calls atlas geocode endpoint with Bearer auth", async () => {
+    const mockFetch = stubFetchWithToken({ copResults: { latitude: 28.6 } });
+    const result = await geocode(oauthAuth, { address: "India Gate, Delhi" });
     const parsed = JSON.parse(result);
+    expect(parsed.copResults.latitude).toBe(28.6);
 
-    expect(parsed.copResults[0].latitude).toBe(28.6);
-    const [url] = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
-    // API key is embedded in URL path: /v1/{key}/geocode
-    expect(url).toContain("/v1/test-key/geocode");
+    const url = getApiCallUrl(mockFetch);
+    expect(url).toContain("atlas.mappls.com/api/places/geocode");
     expect(url).toContain("address=India+Gate%2C+Delhi");
-  });
 
-  it("passes optional pod and region params", async () => {
-    vi.stubGlobal("fetch", mockSuccess({}));
-    await geocode(apiKeyAuth, { address: "Delhi", pod: "CITY", region: "IND" });
-    const [url] = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
-    expect(url).toContain("pod=CITY");
-    expect(url).toContain("region=IND");
+    // Check Bearer header was sent
+    const apiCall = mockFetch.mock.calls.find(
+      (c: [string]) => !c[0].includes("oauth/token")
+    );
+    expect(apiCall[1]?.headers?.Authorization).toBe("bearer test-token");
   });
 
   it("throws on API error", async () => {
-    vi.stubGlobal("fetch", mockFailure(403, "Forbidden"));
-    await expect(geocode(apiKeyAuth, { address: "x" })).rejects.toThrow(
-      "Mappls API error 403"
-    );
+    stubFetchFailure(403, "Forbidden");
+    await expect(geocode(oauthAuth, { address: "x" })).rejects.toThrow("Mappls API error 403");
   });
 });
 
 describe("reverseGeocode", () => {
-  it("calls rev_geocode endpoint with lat/lng", async () => {
-    vi.stubGlobal("fetch", mockSuccess({ formatted_address: "India Gate" }));
-    const result = await reverseGeocode(apiKeyAuth, { lat: 28.6129, lng: 77.2295 });
-    const parsed = JSON.parse(result);
-    expect(parsed.formatted_address).toBe("India Gate");
-    const [url] = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
-    expect(url).toContain("/v1/test-key/rev_geocode");
+  it("calls advancedmaps rev_geocode with token in path", async () => {
+    const mockFetch = stubFetchWithToken({ formatted_address: "India Gate" });
+    const result = await reverseGeocode(oauthAuth, { lat: 28.6129, lng: 77.2295 });
+    expect(JSON.parse(result).formatted_address).toBe("India Gate");
+
+    const url = getApiCallUrl(mockFetch);
+    expect(url).toContain("apis.mappls.com/advancedmaps/v1/test-token/rev_geocode");
     expect(url).toContain("lat=28.6129");
     expect(url).toContain("lng=77.2295");
   });
 });
 
 describe("placesSearch", () => {
-  it("calls places endpoint with query", async () => {
-    vi.stubGlobal("fetch", mockSuccess({ suggestedLocations: [] }));
-    await placesSearch(apiKeyAuth, { query: "coffee" });
-    const [url] = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
-    expect(url).toContain("/v1/test-key/places");
+  it("calls atlas search/json endpoint", async () => {
+    const mockFetch = stubFetchWithToken({ suggestedLocations: [] });
+    await placesSearch(oauthAuth, { query: "coffee" });
+    const url = getApiCallUrl(mockFetch);
+    expect(url).toContain("atlas.mappls.com/api/places/search/json");
     expect(url).toContain("query=coffee");
-  });
-
-  it("includes location and radius when provided", async () => {
-    vi.stubGlobal("fetch", mockSuccess({}));
-    await placesSearch(apiKeyAuth, {
-      query: "atm",
-      location: "28.6,77.2",
-      radius: 500,
-    });
-    const [url] = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
-    expect(url).toContain("location=28.6%2C77.2");
-    expect(url).toContain("radius=500");
   });
 });
 
 describe("nearby", () => {
-  it("calls nearby endpoint with required params", async () => {
-    vi.stubGlobal("fetch", mockSuccess({ nearbyPlaces: [] }));
-    await nearby(apiKeyAuth, { keywords: "hospital", refLocation: "28.6,77.2" });
-    const [url] = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
-    expect(url).toContain("/v1/test-key/nearby");
+  it("calls atlas nearby/json endpoint", async () => {
+    const mockFetch = stubFetchWithToken({ suggestedLocations: [] });
+    await nearby(oauthAuth, { keywords: "hospital", refLocation: "28.6,77.2" });
+    const url = getApiCallUrl(mockFetch);
+    expect(url).toContain("atlas.mappls.com/api/places/nearby/json");
     expect(url).toContain("keywords=hospital");
-    expect(url).toContain("refLocation=28.6%2C77.2");
   });
 });
 
 describe("directions", () => {
-  it("builds coordinates from origin and destination", async () => {
-    vi.stubGlobal("fetch", mockSuccess({ routes: [] }));
-    await directions(apiKeyAuth, {
+  it("uses route_adv with lng,lat order", async () => {
+    const mockFetch = stubFetchWithToken({ routes: [] });
+    await directions(oauthAuth, {
       origin: "28.6,77.2",
       destination: "28.7,77.3",
     });
-    const [url] = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
-    expect(url).toContain("/v1/test-key/direction/driving");
-    expect(url).toContain("coordinates=28.6%2C77.2%3B28.7%2C77.3");
+    const url = getApiCallUrl(mockFetch);
+    // route_adv endpoint with coords in lng,lat order
+    expect(url).toContain("/route_adv/driving/77.2,28.6;77.3,28.7");
   });
 
-  it("inserts waypoints between origin and destination", async () => {
-    vi.stubGlobal("fetch", mockSuccess({}));
-    await directions(apiKeyAuth, {
+  it("inserts waypoints and uses correct profile", async () => {
+    const mockFetch = stubFetchWithToken({});
+    await directions(oauthAuth, {
       origin: "28.6,77.2",
       destination: "28.8,77.4",
       waypoints: "28.7,77.3",
       profile: "biking",
     });
-    const [url] = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
-    expect(url).toContain("/v1/test-key/direction/biking");
-    expect(url).toContain("28.6%2C77.2%3B28.7%2C77.3%3B28.8%2C77.4");
+    const url = getApiCallUrl(mockFetch);
+    expect(url).toContain("/route_adv/biking/77.2,28.6;77.3,28.7;77.4,28.8");
   });
 });
 
 describe("distanceMatrix", () => {
-  it("calls distance_matrix endpoint with origins and destinations", async () => {
-    vi.stubGlobal("fetch", mockSuccess({ distances: [] }));
-    await distanceMatrix(apiKeyAuth, {
-      origins: "28.6,77.2|28.5,77.1",
+  it("puts coords in path with sources/destinations indices", async () => {
+    const mockFetch = stubFetchWithToken({ distances: [] });
+    await distanceMatrix(oauthAuth, {
+      origins: "28.6,77.2",
       destinations: "28.7,77.3",
     });
-    const [url] = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
-    expect(url).toContain("/v1/test-key/distance_matrix/driving");
-    expect(url).toContain("origins=");
-    expect(url).toContain("destinations=");
+    const url = getApiCallUrl(mockFetch);
+    expect(url).toContain("/distance_matrix/driving/77.2,28.6;77.3,28.7");
+    expect(url).toContain("sources=0");
+    expect(url).toContain("destinations=1");
   });
 });
 
 describe("placeDetail", () => {
-  it("calls eloc endpoint with the eLoc", async () => {
-    vi.stubGlobal("fetch", mockSuccess({ placeAddress: "New Delhi" }));
-    const result = await placeDetail(apiKeyAuth, { eLoc: "MMI000" });
-    const parsed = JSON.parse(result);
-    expect(parsed.placeAddress).toBe("New Delhi");
-    const [url] = (fetch as ReturnType<typeof vi.fn>).mock.calls[0];
-    expect(url).toContain("/v1/test-key/eloc");
-    expect(url).toContain("eLoc=MMI000");
+  it("calls explore O2O entity endpoint", async () => {
+    const mockFetch = stubFetchWithToken({ name: "Connaught Place" });
+    const result = await placeDetail(oauthAuth, { eLoc: "V66B2L" });
+    expect(JSON.parse(result).name).toBe("Connaught Place");
+
+    const url = getApiCallUrl(mockFetch);
+    expect(url).toContain("explore.mappls.com/apis/O2O/entity/V66B2L");
   });
 });

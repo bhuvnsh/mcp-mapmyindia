@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { AuthConfig } from "../auth.js";
-import { mapplsGet } from "../client.js";
+import { mapplsAtlas } from "../client.js";
 
 export const geocodeSchema = z.object({
   address: z.string().describe("Address or place name to geocode"),
@@ -27,6 +27,6 @@ export async function geocode(auth: AuthConfig, input: GeocodeInput): Promise<st
   if (input.bias) params.bias = input.bias;
   if (input.filter) params.filter = input.filter;
 
-  const data = await mapplsGet(auth, "/geocode", params);
+  const data = await mapplsAtlas(auth, "/geocode", params);
   return JSON.stringify(data, null, 2);
 }

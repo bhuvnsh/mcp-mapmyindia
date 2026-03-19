@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { AuthConfig } from "../auth.js";
-import { mapplsGet } from "../client.js";
+import { mapplsAdvanced } from "../client.js";
 
 export const reverseGeocodeSchema = z.object({
   lat: z.number().describe("Latitude"),
@@ -20,6 +20,6 @@ export async function reverseGeocode(
   };
   if (input.lang) params.lang = input.lang;
 
-  const data = await mapplsGet(auth, "/rev_geocode", params);
+  const data = await mapplsAdvanced(auth, "/rev_geocode", params);
   return JSON.stringify(data, null, 2);
 }
