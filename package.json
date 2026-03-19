@@ -4,13 +4,23 @@
   "description": "MCP server for MapMyIndia (Mappls) APIs — geocoding, routing, places, and more",
   "keywords": [
     "mcp",
+    "mcp-server",
     "mapmyindia",
     "mappls",
     "maps",
+    "india",
     "geocoding",
-    "mcp-server"
+    "routing",
+    "directions",
+    "places",
+    "nearby"
   ],
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bhuvnsh/mcp-mappls.git"
+  },
+  "homepage": "https://github.com/bhuvnsh/mcp-mappls#readme",
   "type": "module",
   "bin": {
     "mcp-mapmyindia": "./dist/index.js"
