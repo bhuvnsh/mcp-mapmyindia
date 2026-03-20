@@ -26,8 +26,13 @@ export const directionsSchema = z.object({
 
 export type DirectionsInput = z.infer<typeof directionsSchema>;
 
-function flipCoord(latLng: string): string {
-  const [lat, lng] = latLng.split(",");
+function isELoc(point: string): boolean {
+  return !point.includes(",");
+}
+
+function toRoutePoint(point: string): string {
+  if (isELoc(point)) return point;
+  const [lat, lng] = point.split(",");
   return `${lng},${lat}`;
 }
 
@@ -39,7 +44,7 @@ export async function directions(auth: AuthConfig, input: DirectionsInput): Prom
     points.push(...input.waypoints.split("|"));
   }
   points.push(input.destination);
-  const coords = points.map(flipCoord).join(";");
+  const coords = points.map(toRoutePoint).join(";");
 
   const params: Record<string, string | number | boolean> = {};
   if (input.alternatives !== undefined) params.alternatives = input.alternatives;

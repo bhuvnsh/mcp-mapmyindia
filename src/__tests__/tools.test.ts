@@ -9,7 +9,6 @@ import { placeDetail } from "../tools/place-detail.js";
 
 const oauthAuth = { mode: "oauth" as const, clientId: "id", clientSecret: "secret" };
 
-/** Stub fetch AND the OAuth token fetch in one go */
 function stubFetchWithToken(apiResponse: unknown) {
   const mockFetch = vi.fn().mockImplementation((url: string) => {
     if (url.includes("oauth/token")) {
@@ -41,7 +40,6 @@ function stubFetchFailure(status: number, text: string) {
   return mockFetch;
 }
 
-/** Get the last non-OAuth fetch call URL */
 function getApiCallUrl(mockFetch: ReturnType<typeof vi.fn>): string {
   const calls = mockFetch.mock.calls.filter(
     (c: [string]) => !c[0].includes("oauth/token")
@@ -51,7 +49,6 @@ function getApiCallUrl(mockFetch: ReturnType<typeof vi.fn>): string {
 
 beforeEach(() => {
   vi.unstubAllGlobals();
-  // Reset the cached OAuth token between tests
   vi.resetModules();
 });
 
@@ -66,7 +63,6 @@ describe("geocode", () => {
     expect(url).toContain("atlas.mappls.com/api/places/geocode");
     expect(url).toContain("address=India+Gate%2C+Delhi");
 
-    // Check Bearer header was sent
     const apiCall = mockFetch.mock.calls.find(
       (c: [string]) => !c[0].includes("oauth/token")
     );
@@ -120,7 +116,6 @@ describe("directions", () => {
       destination: "28.7,77.3",
     });
     const url = getApiCallUrl(mockFetch);
-    // route_adv endpoint with coords in lng,lat order
     expect(url).toContain("/route_adv/driving/77.2,28.6;77.3,28.7");
   });
 
@@ -135,6 +130,26 @@ describe("directions", () => {
     const url = getApiCallUrl(mockFetch);
     expect(url).toContain("/route_adv/biking/77.2,28.6;77.3,28.7;77.4,28.8");
   });
+  it("passes eLoc destination through without flipping", async () => {
+  const mockFetch = stubFetchWithToken({ routes: [] });
+  await directions(oauthAuth, {
+    origin: "28.6,77.2",
+    destination: "JJZYUY",
+  });
+  const url = getApiCallUrl(mockFetch);
+  expect(url).toContain("/route_adv/driving/77.2,28.6;JJZYUY");
+});
+
+it("handles mixed eLoc and lat,lng waypoints correctly", async () => {
+  const mockFetch = stubFetchWithToken({ routes: [] });
+  await directions(oauthAuth, {
+    origin: "28.6,77.2",
+    waypoints: "ABCDEF",
+    destination: "28.8,77.4",
+  });
+  const url = getApiCallUrl(mockFetch);
+  expect(url).toContain("/route_adv/driving/77.2,28.6;ABCDEF;77.4,28.8");
+});
 });
 
 describe("distanceMatrix", () => {

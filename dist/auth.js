@@ -1,6 +1,5 @@
 let cachedToken = null;
 let tokenExpiresAt = 0;
-/** Reset the OAuth token cache. Exposed for testing only. */
 export function _resetTokenCache() {
     cachedToken = null;
     tokenExpiresAt = 0;
@@ -22,7 +21,6 @@ export async function getAccessToken(auth) {
     if (auth.mode === "api_key") {
         return auth.apiKey;
     }
-    // Return cached token if still valid (with 60s buffer)
     if (cachedToken && Date.now() < tokenExpiresAt - 60_000) {
         return cachedToken;
     }
