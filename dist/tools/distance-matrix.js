@@ -17,17 +17,22 @@ export const distanceMatrixSchema = z.object({
         .optional()
         .describe("Route type: 0 = optimal (default), 1 = shortest"),
 });
-function flipCoord(latLng) {
-    const [lat, lng] = latLng.split(",");
+function isELoc(point) {
+    return !point.includes(",");
+}
+function toRoutePoint(point) {
+    if (isELoc(point))
+        return point;
+    const [lat, lng] = point.split(",");
     return `${lng},${lat}`;
 }
 export async function distanceMatrix(auth, input) {
     const profile = input.profile ?? "driving";
-    const originPts = input.origins.split("|").map(flipCoord);
-    const destPts = input.destinations.split("|").map(flipCoord);
+    const originPts = input.origins.split("|").map(toRoutePoint);
+    const destPts = input.destinations.split("|").map(toRoutePoint);
     const allCoords = [...originPts, ...destPts].join(";");
-    const sourceIndices = originPts.map((_, i) => i).join(",");
-    const destIndices = destPts.map((_, i) => i + originPts.length).join(",");
+    const sourceIndices = originPts.map((_, i) => i).join(";");
+    const destIndices = destPts.map((_, i) => i + originPts.length).join(";");
     const params = {
         sources: sourceIndices,
         destinations: destIndices,

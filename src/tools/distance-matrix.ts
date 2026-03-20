@@ -24,10 +24,16 @@ export const distanceMatrixSchema = z.object({
 
 export type DistanceMatrixInput = z.infer<typeof distanceMatrixSchema>;
 
-function flipCoord(latLng: string): string {
-  const [lat, lng] = latLng.split(",");
+function isELoc(point: string): boolean {
+  return !point.includes(",");
+}
+
+function toRoutePoint(point: string): string {
+  if (isELoc(point)) return point;
+  const [lat, lng] = point.split(",");
   return `${lng},${lat}`;
 }
+
 
 export async function distanceMatrix(
   auth: AuthConfig,
@@ -35,12 +41,12 @@ export async function distanceMatrix(
 ): Promise<string> {
   const profile = input.profile ?? "driving";
 
-  const originPts = input.origins.split("|").map(flipCoord);
-  const destPts = input.destinations.split("|").map(flipCoord);
+  const originPts = input.origins.split("|").map(toRoutePoint);
+  const destPts = input.destinations.split("|").map(toRoutePoint);
   const allCoords = [...originPts, ...destPts].join(";");
 
-  const sourceIndices = originPts.map((_, i) => i).join(",");
-  const destIndices = destPts.map((_, i) => i + originPts.length).join(",");
+  const sourceIndices = originPts.map((_, i) => i).join(";");
+  const destIndices = destPts.map((_, i) => i + originPts.length).join(";");
 
   const params: Record<string, string | number | boolean> = {
     sources: sourceIndices,

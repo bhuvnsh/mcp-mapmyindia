@@ -130,26 +130,27 @@ describe("directions", () => {
     const url = getApiCallUrl(mockFetch);
     expect(url).toContain("/route_adv/biking/77.2,28.6;77.3,28.7;77.4,28.8");
   });
+  
   it("passes eLoc destination through without flipping", async () => {
-  const mockFetch = stubFetchWithToken({ routes: [] });
-  await directions(oauthAuth, {
-    origin: "28.6,77.2",
-    destination: "JJZYUY",
+    const mockFetch = stubFetchWithToken({ routes: [] });
+    await directions(oauthAuth, {
+      origin: "28.6,77.2",
+      destination: "JJZYUY",
+    });
+    const url = getApiCallUrl(mockFetch);
+    expect(url).toContain("/route_adv/driving/77.2,28.6;JJZYUY");
   });
-  const url = getApiCallUrl(mockFetch);
-  expect(url).toContain("/route_adv/driving/77.2,28.6;JJZYUY");
-});
 
-it("handles mixed eLoc and lat,lng waypoints correctly", async () => {
-  const mockFetch = stubFetchWithToken({ routes: [] });
-  await directions(oauthAuth, {
-    origin: "28.6,77.2",
-    waypoints: "ABCDEF",
-    destination: "28.8,77.4",
+  it("handles mixed eLoc and lat,lng waypoints correctly", async () => {
+    const mockFetch = stubFetchWithToken({ routes: [] });
+    await directions(oauthAuth, {
+      origin: "28.6,77.2",
+      waypoints: "ABCDEF",
+      destination: "28.8,77.4",
+    });
+    const url = getApiCallUrl(mockFetch);
+    expect(url).toContain("/route_adv/driving/77.2,28.6;ABCDEF;77.4,28.8");
   });
-  const url = getApiCallUrl(mockFetch);
-  expect(url).toContain("/route_adv/driving/77.2,28.6;ABCDEF;77.4,28.8");
-});
 });
 
 describe("distanceMatrix", () => {
@@ -163,6 +164,16 @@ describe("distanceMatrix", () => {
     expect(url).toContain("/distance_matrix/driving/77.2,28.6;77.3,28.7");
     expect(url).toContain("sources=0");
     expect(url).toContain("destinations=1");
+  });
+  it("uses semicolon separator for sources and destinations indices", async () => {
+    const mockFetch = stubFetchWithToken({ distances: [] });
+    await distanceMatrix(oauthAuth, {
+      origins: "28.6,77.2|28.7,77.3",
+      destinations: "28.8,77.4",
+    });
+    const url = getApiCallUrl(mockFetch);
+    expect(url).toContain("sources=0%3B1");    
+    expect(url).toContain("destinations=2");
   });
 });
 
