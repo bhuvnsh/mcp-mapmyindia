@@ -1,0 +1,43 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.bhuvnsh/mcp-mapmyindia",
+  "description": "MCP server for India maps — geocoding, reverse geocoding, place search, nearby POI discovery, turn-by-turn directions, and distance matrix powered by the Mappls / MapMyIndia API.",
+  "repository": {
+    "url": "https://github.com/bhuvnsh/mcp-mapmyindia",
+    "source": "github"
+  },
+  "version": "0.1.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "mcp-mapmyindia",
+      "version": "0.1.0",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "MAPPLS_API_KEY",
+          "description": "Mappls API key — get one free at https://apis.mappls.com",
+          "isRequired": false,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "MAPPLS_CLIENT_ID",
+          "description": "Mappls OAuth client ID (alternative to API key)",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "string"
+        },
+        {
+          "name": "MAPPLS_CLIENT_SECRET",
+          "description": "Mappls OAuth client secret (used with CLIENT_ID)",
+          "isRequired": false,
+          "isSecret": true,
+          "format": "string"
+        }
+      ]
+    }
+  ]
+}

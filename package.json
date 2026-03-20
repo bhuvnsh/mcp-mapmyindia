@@ -2,6 +2,7 @@
   "name": "mcp-mapmyindia",
   "version": "0.1.0",
   "description": "MCP server for MapMyIndia (Mappls) APIs — geocoding, routing, places, and more",
+  "mcpName": "io.github.bhuvnsh/mcp-mapmyindia",
   "keywords": [
     "mcp",
     "mcp-server",

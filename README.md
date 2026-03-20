@@ -1,5 +1,7 @@
 # mcp-mapmyindia
 
+<!-- mcp-name: io.github.bhuvnsh/mcp-mapmyindia -->
+
 **MCP Server for Mappls / MapMyIndia APIs**
 
 [![CI](https://github.com/bhuvnsh/mcp-mappls/actions/workflows/ci.yml/badge.svg)](https://github.com/bhuvnsh/mcp-mappls/actions/workflows/ci.yml)
