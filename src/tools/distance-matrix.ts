@@ -24,7 +24,6 @@ export const distanceMatrixSchema = z.object({
 
 export type DistanceMatrixInput = z.infer<typeof distanceMatrixSchema>;
 
-/** Convert "lat,lng" to "lng,lat" for Mappls API */
 function flipCoord(latLng: string): string {
   const [lat, lng] = latLng.split(",");
   return `${lng},${lat}`;
@@ -36,12 +35,10 @@ export async function distanceMatrix(
 ): Promise<string> {
   const profile = input.profile ?? "driving";
 
-  // Build coordinate string: all origins then all destinations, separated by ;
   const originPts = input.origins.split("|").map(flipCoord);
   const destPts = input.destinations.split("|").map(flipCoord);
   const allCoords = [...originPts, ...destPts].join(";");
 
-  // sources/destinations indices
   const sourceIndices = originPts.map((_, i) => i).join(",");
   const destIndices = destPts.map((_, i) => i + originPts.length).join(",");
 
@@ -52,7 +49,6 @@ export async function distanceMatrix(
   if (input.region) params.region = input.region;
   if (input.rtype !== undefined) params.rtype = input.rtype;
 
-  // distance_matrix endpoint: /distance_matrix/{profile}/{coords}
   const data = await mapplsAdvanced(auth, `/distance_matrix/${profile}/${allCoords}`, params);
   return JSON.stringify(data, null, 2);
 }

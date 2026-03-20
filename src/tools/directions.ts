@@ -26,7 +26,6 @@ export const directionsSchema = z.object({
 
 export type DirectionsInput = z.infer<typeof directionsSchema>;
 
-/** Convert "lat,lng" to "lng,lat" for Mappls route_adv API */
 function flipCoord(latLng: string): string {
   const [lat, lng] = latLng.split(",");
   return `${lng},${lat}`;
@@ -35,7 +34,6 @@ function flipCoord(latLng: string): string {
 export async function directions(auth: AuthConfig, input: DirectionsInput): Promise<string> {
   const profile = input.profile ?? "driving";
 
-  // Build coordinate string in lng,lat order separated by ;
   const points = [input.origin];
   if (input.waypoints) {
     points.push(...input.waypoints.split("|"));
@@ -50,7 +48,6 @@ export async function directions(auth: AuthConfig, input: DirectionsInput): Prom
   if (input.overview) params.overview = input.overview;
   if (input.region) params.region = input.region;
 
-  // route_adv endpoint: /route_adv/{profile}/{coords}
   const data = await mapplsAdvanced(auth, `/route_adv/${profile}/${coords}`, params);
   return JSON.stringify(data, null, 2);
 }
