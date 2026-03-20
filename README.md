@@ -38,15 +38,15 @@ Register at [https://apis.mappls.com](https://apis.mappls.com) to get either:
 
 Set one of the following in your environment:
 
-**Option A — API Key:**
-```bash
-export MAPPLS_API_KEY=your_api_key_here
-```
-
-**Option B — OAuth (Client Credentials):**
+** [RECOMMENDED] Option A — OAuth (Client Credentials):**
 ```bash
 export MAPPLS_CLIENT_ID=your_client_id
 export MAPPLS_CLIENT_SECRET=your_client_secret
+```
+
+**Option B — API Key:**
+```bash
+export MAPPLS_API_KEY=your_api_key_here
 ```
 
 ---
