@@ -3,3 +3,5 @@ dist/
 coverage/
 *.env
 .env*
+.mcpregistry_github_token
+.mcpregistry_registry_token
