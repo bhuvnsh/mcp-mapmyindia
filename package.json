@@ -18,9 +18,9 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/bhuvnsh/mcp-mappls.git"
+    "url": "https://github.com/bhuvnsh/mcp-mapmyindia.git"
   },
-  "homepage": "https://github.com/bhuvnsh/mcp-mappls#readme",
+  "homepage": "https://github.com/bhuvnsh/mcp-mapmyindia#readme",
   "type": "module",
   "bin": {
     "mcp-mapmyindia": "./dist/index.js"
