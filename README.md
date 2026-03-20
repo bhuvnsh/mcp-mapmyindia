@@ -38,7 +38,7 @@ Register at [https://apis.mappls.com](https://apis.mappls.com) to get either:
 
 Set one of the following in your environment:
 
-** [RECOMMENDED] Option A — OAuth (Client Credentials):**
+** RECOMMEND Option A — OAuth (Client Credentials):**
 ```bash
 export MAPPLS_CLIENT_ID=your_client_id
 export MAPPLS_CLIENT_SECRET=your_client_secret
