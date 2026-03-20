@@ -38,7 +38,8 @@ Register at [https://apis.mappls.com](https://apis.mappls.com) to get either:
 
 Set one of the following in your environment:
 
-** RECOMMEND Option A — OAuth (Client Credentials):**
+**Option A — OAuth (Client Credentials):**
+RECOMMENDED
 ```bash
 export MAPPLS_CLIENT_ID=your_client_id
 export MAPPLS_CLIENT_SECRET=your_client_secret
@@ -55,31 +56,31 @@ export MAPPLS_API_KEY=your_api_key_here
 
 Add to your `claude_desktop_config.json`:
 
-```json
+```OAuth
 {
   "mcpServers": {
     "mapmyindia": {
       "command": "npx",
-      "args": ["-y", "mcp-mapmyindia"],
+      "args": ["-y", "@bhuvsh/mcp-mapmyindia"],
       "env": {
-        "MAPPLS_API_KEY": "your_api_key_here"
+        "MAPPLS_CLIENT_ID": "your_client_id",
+        "MAPPLS_CLIENT_SECRET": "your_client_secret"
       }
     }
   }
 }
 ```
 
-Or with OAuth:
+Or with API key:
 
 ```json
 {
   "mcpServers": {
     "mapmyindia": {
       "command": "npx",
-      "args": ["-y", "mcp-mapmyindia"],
+      "args": ["-y", "@bhuvnsh/mcp-mapmyindia"],
       "env": {
-        "MAPPLS_CLIENT_ID": "your_client_id",
-        "MAPPLS_CLIENT_SECRET": "your_client_secret"
+        "MAPPLS_API_KEY": "your_api_key_here"
       }
     }
   }
